@@ -17,7 +17,7 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
   exit 1
 fi
 
-for tool in cargo rustup xcodebuild xcodegen ditto file plutil shasum; do
+for tool in cargo rustup xcodebuild xcodegen xcrun jq ditto file plutil shasum; do
   command -v "$tool" >/dev/null || {
     echo "缺少构建工具：$tool" >&2
     exit 1
@@ -49,6 +49,8 @@ rm -f \
   "$OUTPUT_ROOT/CameraBridgeCore.xcframework.zip" \
   "$OUTPUT_ROOT/CameraBridge-Xcode-Project.zip" \
   "$OUTPUT_ROOT/CameraBridgeTests.xcresult.zip" \
+  "$OUTPUT_ROOT/CameraBridge-Simulator.png" \
+  "$OUTPUT_ROOT/simulator-launch.log" \
   "$OUTPUT_ROOT/SHA256SUMS" \
   "$OUTPUT_ROOT/artifact-validation.log" \
   "$OUTPUT_ROOT/xcodebuild-simulator.log" \
@@ -161,5 +163,25 @@ if [[ "$TEST_STATUS" -ne 0 ]]; then
   echo "Swift 测试失败，测试结果和构建日志已保留。" >&2
   exit "$TEST_STATUS"
 fi
+
+# 使用本次运行独占的模拟器验证 App 能启动，并保留真实界面截图。
+RUNTIME_ID="$(xcrun simctl list runtimes --json | jq -r \
+  '[.runtimes[] | select(.isAvailable and (.identifier | contains("SimRuntime.iOS-26-")))] | sort_by(.version | split(".") | map(tonumber)) | last | .identifier // empty')"
+if [[ -z "$RUNTIME_ID" ]]; then
+  echo "找不到可用的 iOS 26 模拟器运行时。" >&2
+  exit 1
+fi
+SMOKE_DEVICE="$(xcrun simctl create 'CameraBridge CI' 'iPhone 17 Pro' "$RUNTIME_ID")"
+trap 'xcrun simctl shutdown "$SMOKE_DEVICE" >/dev/null 2>&1 || true; xcrun simctl delete "$SMOKE_DEVICE" >/dev/null 2>&1 || true' EXIT
+xcrun simctl boot "$SMOKE_DEVICE"
+xcrun simctl bootstatus "$SMOKE_DEVICE" -b
+xcrun simctl install "$SMOKE_DEVICE" "$SIMULATOR_APP"
+xcrun simctl launch "$SMOKE_DEVICE" app.camerabridge.ios | tee "$OUTPUT_ROOT/simulator-launch.log"
+sleep 3
+xcrun simctl io "$SMOKE_DEVICE" screenshot "$OUTPUT_ROOT/CameraBridge-Simulator.png"
+(
+  cd "$OUTPUT_ROOT"
+  shasum -a 256 CameraBridge-Simulator.png >> SHA256SUMS
+)
 
 echo "iOS 构建、归档和测试产物已写入：$OUTPUT_ROOT"

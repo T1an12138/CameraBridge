@@ -141,7 +141,7 @@ private struct ConnectionView: View {
                 Label("保持相机屏幕唤醒并停留在网络页面", systemImage: "2.circle")
             }
 
-            Section("相机热点") {
+            Section {
                 TextField("显示名称", text: $profile.displayName)
                 TextField("相机显示的 SSID", text: $profile.ssid)
                     .textInputAutocapitalization(.never)
@@ -156,6 +156,8 @@ private struct ConnectionView: View {
                     format: .number.grouping(.never)
                 )
                 .keyboardType(.numberPad)
+            } header: {
+                Text("相机热点")
             } footer: {
                 Text("iOS 不允许普通 App 扫描附近 SSID；地址只做固定单播，不扫描子网。")
             }

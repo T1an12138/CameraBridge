@@ -264,18 +264,26 @@ async fn complete_atomic(
     destination: &Path,
     overwrite: bool,
 ) -> Result<(), CameraError> {
-    if overwrite
-        && fs::try_exists(destination)
+    if overwrite {
+        // 直接原子替换；不能先删除旧文件，否则重命名失败会丢失原文件。
+        return fs::rename(partial, destination)
             .await
-            .map_err(CameraError::from_io)?
-    {
-        fs::remove_file(destination)
-            .await
-            .map_err(CameraError::from_io)?;
+            .map_err(CameraError::from_io);
     }
-    fs::rename(partial, destination)
-        .await
-        .map_err(CameraError::from_io)
+
+    // 创建硬链接是不可覆盖的原子操作，即使目标在下载过程中出现也会失败。
+    // 不支持硬链接的文件系统安全报错并保留 partial，绝不降级为覆盖操作。
+    fs::hard_link(partial, destination).await.map_err(|error| {
+        if error.kind() == io::ErrorKind::AlreadyExists {
+            CameraError::Conflict
+        } else {
+            CameraError::from_io(error)
+        }
+    })?;
+    if let Err(error) = fs::remove_file(partial).await {
+        tracing::warn!(%error, "已完成下载，但未能清理临时硬链接");
+    }
+    Ok(())
 }
 
 async fn run_download(
@@ -391,7 +399,7 @@ async fn run_download(
 
 /// 启动基于文件的传输，并在校验后立即返回。
 ///
-/// 只有在完成长度校验、`sync_data` 和同目录重命名后，才会发布最终文件名。
+/// 只有在完成长度校验、`sync_data` 和同目录原子发布后，才会报告完成。
 /// 中断时保留 `.partial` 文件。
 pub async fn start_file_download(
     source: Arc<dyn AssetSource>,
@@ -544,5 +552,32 @@ mod tests {
         )
         .await;
         assert!(matches!(result, Err(CameraError::Conflict)));
+    }
+
+    #[tokio::test]
+    async fn destination_created_during_download_is_preserved() {
+        let directory = tempfile::tempdir().unwrap();
+        let destination = directory.path().join("photo.nef");
+        let partial = directory.path().join("photo.nef.partial");
+        fs::write(&partial, b"new camera bytes").await.unwrap();
+        fs::write(&destination, b"keep original").await.unwrap();
+        let result = complete_atomic(&partial, &destination, false).await;
+        assert!(matches!(result, Err(CameraError::Conflict)));
+        assert_eq!(fs::read(destination).await.unwrap(), b"keep original");
+        assert_eq!(fs::read(partial).await.unwrap(), b"new camera bytes");
+    }
+
+    #[tokio::test]
+    async fn failed_replacement_does_not_delete_original() {
+        let directory = tempfile::tempdir().unwrap();
+        let destination = directory.path().join("photo.nef");
+        let missing_partial = directory.path().join("missing.partial");
+        fs::write(&destination, b"keep original").await.unwrap();
+        assert!(
+            complete_atomic(&missing_partial, &destination, true)
+                .await
+                .is_err()
+        );
+        assert_eq!(fs::read(destination).await.unwrap(), b"keep original");
     }
 }

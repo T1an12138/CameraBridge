@@ -1,11 +1,11 @@
 # 验证状态
 
-状态日期：2026-09-03
+状态日期：2026-09-12
 
 ## 已在此 Windows 工作区中验证
 
 - Rust 1.98.0 GNU 主机工具链和项目本地的 LLVM-MinGW 包装脚本能够构建完整工作区。
-- `cargo test --workspace --all-features` 已通过 32 个单元测试和集成测试。
+- `cargo test --workspace --all-features` 已通过 34 个单元测试和集成测试，包括目标文件竞争与替换失败时保护原文件的两项回归测试。
 - 严格 Clippy 检查（`--workspace --all-targets --all-features -- -D warnings`）和 Rustfmt 检查均已通过。
 - `mock-camera` 覆盖了分片/粘包帧、设备忙响应、超时、畸形长度、有界流式传输、中断下载、幂等取消，以及取消后的会话复用。
 - UniFFI 0.31.2 能够从 Windows 静态库提取元数据，并生成预期的 Swift API。这只是命名/签名审查，不是 Apple 链接测试。
@@ -16,7 +16,8 @@
 ## 已实现但尚未执行
 
 - 运行两个 `cargo-fuzz` 测试任务需要 `nightly` Rust 工具链和检测器运行时。
-- 已加入基于 GitHub Actions `macos-26` 的 iOS 构建流程，目标产物包括模拟器 App、XCFramework、Swift 测试结果和无签名真机归档。当前仓库尚未连接 GitHub remote，因此还没有真实 Xcode 构建证据。
+- 已连接私有仓库 `T1an12138/CameraBridge` 并启动真实 GitHub Actions `macos-26` 构建。Xcode 26.6、iPhoneOS 和 iPhoneSimulator SDK 检查已通过；应用编译及测试结果仍待首轮运行结束确认。
+- 新增五项 Swift 传输回归测试，覆盖重复选择、重启恢复导出、未完成任务中断、重试路径与取消，以及原文件清理条件。
 - iOS 模拟器会注入内置 Z6 II mock 与模拟热点加入器；该路径仍需在真实 iOS 26 模拟器中构建和运行验证。
 - 正式 AppIcon 尚未生成，无签名 CI 会暂时禁用 AppIcon 编译。
 

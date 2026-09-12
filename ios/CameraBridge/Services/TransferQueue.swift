@@ -180,7 +180,8 @@ final class TransferQueue {
     }
 
     func clearFinished() {
-        items.removeAll { canClear($0) }
+        let removableIDs = Set(items.filter { canClear($0) }.map(\.id))
+        items.removeAll { removableIDs.contains($0.id) }
     }
 
     private func canClear(_ item: TransferItemState) -> Bool {

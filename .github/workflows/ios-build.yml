@@ -55,7 +55,8 @@ jobs:
           cargo --version
 
       - name: 缓存 Rust 依赖与 Apple 构建结果
-        uses: actions/cache@v4
+        id: rust-cache
+        uses: actions/cache/restore@v4
         with:
           path: |
             ~/.cargo/registry
@@ -84,3 +85,15 @@ jobs:
           path: target/apple-ci-artifacts/
           if-no-files-found: warn
           retention-days: 14
+
+      - name: 保留已编译依赖以便修复后复用
+        if: ${{ !cancelled() && steps.rust-cache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            .tooling/apple-bindgen
+            target/aarch64-apple-ios
+            target/aarch64-apple-ios-sim
+          key: ${{ steps.rust-cache.outputs.cache-primary-key }}
