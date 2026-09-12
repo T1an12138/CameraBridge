@@ -1,0 +1,86 @@
+name: iOS macOS 构建
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - ".github/workflows/ios-build.yml"
+      - ".gitattributes"
+      - ".cargo/**"
+      - "Cargo.lock"
+      - "Cargo.toml"
+      - "rust-toolchain.toml"
+      - "crates/**"
+      - "apps/**"
+      - "ios/**"
+      - "scripts/apple/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Xcode 26.6 构建与测试
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      CARGO_TERM_COLOR: always
+      CAMERABRIDGE_OUTPUT_DIR: ${{ github.workspace }}/target/apple-ci-artifacts
+      CAMERABRIDGE_DERIVED_DATA: ${{ github.workspace }}/target/apple-ci-derived-data
+      CAMERABRIDGE_WORK_DIR: ${{ github.workspace }}/target/apple-ci-work
+      CAMERABRIDGE_TEST_DESTINATION: platform=iOS Simulator,name=iPhone 17 Pro,OS=latest
+
+    steps:
+      - name: 检出源码
+        uses: actions/checkout@v4
+
+      - name: 验证 Apple 与 Rust 工具链
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-path
+          xcrun --sdk iphonesimulator --show-sdk-path
+          rustup toolchain install 1.98.0 --profile minimal --no-self-update
+          rustup default 1.98.0
+          rustc --version
+          cargo --version
+
+      - name: 缓存 Rust 依赖与 Apple 构建结果
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            .tooling/apple-bindgen
+            target/aarch64-apple-ios
+            target/aarch64-apple-ios-sim
+          key: macos-26-xcode-26.6-rust-1.98-${{ hashFiles('Cargo.lock') }}
+
+      - name: 安装 XcodeGen
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+          xcodegen --version
+
+      - name: 构建 XCFramework、模拟器应用和未签名真机归档
+        shell: bash
+        run: bash scripts/apple/ci-build.sh
+
+      - name: 上传构建产物、测试结果和日志
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CameraBridge-ios-${{ github.run_number }}
+          path: target/apple-ci-artifacts/
+          if-no-files-found: warn
+          retention-days: 14

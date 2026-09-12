@@ -1,0 +1,24 @@
+[package]
+name = "mock-camera"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+clap.workspace = true
+ptp-codec = { path = "../../crates/ptp-codec" }
+ptpip = { path = "../../crates/ptpip" }
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+camera-core = { path = "../../crates/camera-core" }
+nikon-driver = { path = "../../crates/nikon-driver" }
+tempfile.workspace = true
+
+[lints]
+workspace = true

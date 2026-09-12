@@ -1,0 +1,21 @@
+[package]
+name = "nikon-driver"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+camera-core = { path = "../camera-core" }
+chrono.workspace = true
+ptpip = { path = "../ptpip" }
+serde.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+uuid.workspace = true
+
+[lints]
+workspace = true

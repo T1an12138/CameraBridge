@@ -1,0 +1,55 @@
+[workspace]
+members = [
+    "apps/camera-cli",
+    "apps/mock-camera",
+    "crates/camera-core",
+    "crates/camera-ffi",
+    "crates/nikon-driver",
+    "crates/ptp-codec",
+    "crates/ptpip",
+]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.98"
+license = "Proprietary"
+
+[workspace.dependencies]
+async-trait = "0.1.89"
+bytes = "1.10.1"
+chrono = { version = "0.4.42", default-features = false, features = ["clock", "serde"] }
+clap = { version = "4.5.47", features = ["derive"] }
+hex = "0.4.3"
+proptest = "1.7.0"
+serde = { version = "1.0.225", features = ["derive"] }
+serde_json = "1.0.145"
+sha2 = "0.10.9"
+tempfile = "3.22.0"
+thiserror = "2.0.16"
+tokio = { version = "1.47.1", features = ["fs", "io-util", "macros", "net", "rt-multi-thread", "sync", "time"] }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.20", features = ["env-filter", "fmt", "json"] }
+uniffi = { version = "=0.31.2", features = ["cli", "tokio"] }
+uuid = { version = "1.18.1", features = ["serde", "v4", "v5"] }
+
+[workspace.lints.rust]
+missing_debug_implementations = "warn"
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+cast_possible_truncation = "allow" # 协议长度在类型转换前已有明确上限。
+chunks_exact_to_as_chunks = "allow" # 保持解析代码与基于切片的 API 兼容。
+missing_errors_doc = "allow" # 每个公开签名已通过错误枚举表达错误。
+needless_pass_by_value = "allow" # 允许将 io::Error 直接用于 Result::map_err。
+too_many_lines = "allow" # 数据包解码器保留为单个穷尽匹配，便于审计。
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "symbols"

@@ -1,0 +1,51 @@
+name: CameraBridge
+options:
+  bundleIdPrefix: app.camerabridge
+  deploymentTarget:
+    iOS: "26.0"
+  xcodeVersion: "26.0"
+  createIntermediateGroups: true
+  developmentLanguage: zh-Hans
+packages:
+  CameraBridgeCore:
+    path: Packages/CameraBridgeCorePackage
+targets:
+  CameraBridge:
+    type: application
+    platform: iOS
+    sources:
+      - path: CameraBridge
+        excludes:
+          - Resources/Info.plist
+          - Resources/CameraBridge.entitlements
+    dependencies:
+      - package: CameraBridgeCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.camerabridge.ios
+        PRODUCT_NAME: CameraBridge
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
+        SWIFT_VERSION: 6.0
+        SWIFT_STRICT_CONCURRENCY: complete
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: CameraBridge/Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: CameraBridge/Resources/CameraBridge.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        TARGETED_DEVICE_FAMILY: "1"
+    scheme:
+      testTargets:
+        - CameraBridgeTests
+  CameraBridgeTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: CameraBridgeTests
+    dependencies:
+      - target: CameraBridge
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.camerabridge.ios.tests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: 6.0
+        SWIFT_STRICT_CONCURRENCY: complete

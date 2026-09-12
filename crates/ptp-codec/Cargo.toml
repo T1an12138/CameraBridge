@@ -1,0 +1,17 @@
+[package]
+name = "ptp-codec"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "CameraBridge 的严格且受内存分配上限约束的 PTP 容器编解码器"
+
+[dependencies]
+bytes.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true

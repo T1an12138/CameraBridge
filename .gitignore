@@ -1,0 +1,15 @@
+.tooling/
+target/
+.build/
+.swiftpm/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+ios/CameraBridge.xcodeproj/
+.DS_Store
+.env
+*.pcap
+*.pcapng
+diagnostics/
+captures/
+.superpowers/

@@ -1,0 +1,25 @@
+[package]
+name = "camera-ffi"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["lib", "staticlib"]
+
+[dependencies]
+camera-core = { path = "../camera-core" }
+chrono.workspace = true
+nikon-driver = { path = "../nikon-driver" }
+thiserror.workspace = true
+tokio.workspace = true
+uniffi.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+mock-camera = { path = "../../apps/mock-camera" }
+tempfile.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,31 @@
+[package]
+name = "camera-bridge-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+rust-version = "1.98"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+ptp-codec = { path = "../crates/ptp-codec" }
+ptpip = { path = "../crates/ptpip" }
+
+[[bin]]
+name = "ptp_container"
+path = "fuzz_targets/ptp_container.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "ptpip_packet"
+path = "fuzz_targets/ptpip_packet.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]
+members = ["."]
