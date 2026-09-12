@@ -12,13 +12,21 @@
 - 一次 CLI/mock 冒烟测试实现了 3/3 首次尝试成功、稳定枚举 500 个对象、p95 为 134 ms、完成两次下载，并执行了一次重复 SHA-256 比较。这些耗时数据不属于实体相机证据。
 - 另一次注入故障的 CLI/mock 运行在 500 个对象下得到首页 p95 145 ms，在首个下载进行到 512 字节后将其中断，随后重连一次、重新开始并完成该文件，且通过了重复 SHA-256 检查。报告模式 3 记录了一次要求的中断恢复和一次已完成的中断恢复。
 - 两个 `cargo-fuzz` 解析器目标均可通过 `scripts/windows/check-fuzz.ps1` 完成编译检查；尚未执行长时间模糊测试。
+- 2026-09-12 使用当前 Rust 核心执行本地回环压力回归：20/20 次首次连接成功，500 项分页稳定，首页 p95 为 163 ms，50/50 次下载完成，一次人为中断成功恢复，重复下载 SHA-256 一致。报告位于 `target/mock-stress-20260912-1406/validation-report.json`；这不是实体相机证据。
 
-## 已实现但尚未执行
+## 已在真实 macOS 环境中验证
+
+- 私有仓库的 [第 3 次构建](https://github.com/T1an12138/CameraBridge/actions/runs/34676925571) 已成功，应用源码提交为 `3809d7c514be2ce79d2e2a55a057ce92f4522399`；后续文档提交不改变这些二进制产物。
+- Xcode 26.6、Swift 6 严格并发、iPhoneOS 和 iPhoneSimulator SDK 均已实际用于构建；两平台 Rust 静态库、UniFFI Swift 绑定与 XCFramework 已编译和链接。
+- arm64 模拟器 Release App 与未签名 arm64 iPhone 归档已生成；4 个测试套件中的 12 项 Swift 测试（含一个三参数测试）全部通过。
+- Release App 已在独立 iOS 26 模拟器上安装、启动并截图。下载到 Windows 的 5 个压缩包及截图均通过 SHA-256 校验，App 的 bundle ID 与平台标识已核对。
+- 当前日志保留模拟器固定使用 mock 的不可达分支警告，以及未接入 App Intents 的元数据提取提示；未将它们作为构建失败处理。
+
+## 后续验证
 
 - 运行两个 `cargo-fuzz` 测试任务需要 `nightly` Rust 工具链和检测器运行时。
-- 已连接私有仓库 `T1an12138/CameraBridge` 并启动真实 GitHub Actions `macos-26` 构建。Xcode 26.6、iPhoneOS 和 iPhoneSimulator SDK 检查已通过；应用编译及测试结果仍待首轮运行结束确认。
-- 新增五项 Swift 传输回归测试，覆盖重复选择、重启恢复导出、未完成任务中断、重试路径与取消，以及原文件清理条件。
-- iOS 模拟器会注入内置 Z6 II mock 与模拟热点加入器；该路径仍需在真实 iOS 26 模拟器中构建和运行验证。
+- 两项媒体请求乱序/断开测试及两项真实 UniFFI 基础测试已在第 3 次远程构建通过：一千次对象创建释放无崩溃，Rust 异步参数错误可正确返回 Swift。
+- 一千次对象弱引用释放测试不等于 Instruments 内存泄漏检查；真实 FFI 连接、进度和取消仍需结合相机或网络模拟对端验证。
 - 正式 AppIcon 尚未生成，无签名 CI 会暂时禁用 AppIcon 编译。
 
 ## 仍需实体硬件验证

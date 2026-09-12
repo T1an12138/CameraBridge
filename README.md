@@ -12,7 +12,7 @@ CameraBridge 是一个本地优先的相机导入项目。首个硬件目标是�
 
 ## 当前交付边界
 
-Rust 工作区可以在 Windows 上构建和测试。Apple 产物必须由装有 Xcode 26 的真实 macOS 主机生成；仓库已经提供 GitHub Actions `macos-26` 构建流程，但在代码上传并触发工作流之前，不能声称 iOS 构建已经通过。实体 iPhone 安装仍需要 Apple Developer 证书、私钥和描述文件。
+Rust 工作区已通过 Windows 上的 34 项测试。2026-09-12 的 [真实 macOS 构建](https://github.com/T1an12138/CameraBridge/actions/runs/34676925571) 已通过：Xcode 26.6 生成了模拟器 App、Rust XCFramework 与未签名真机归档，12 项 Swift 测试全部成功，并完成模拟器启动截图。实体 iPhone 安装仍需要 Apple 签名与匹配的描述文件；Z6 II 协议兼容性尚未经过实体相机验收。
 
 ## Windows 快速开始
 

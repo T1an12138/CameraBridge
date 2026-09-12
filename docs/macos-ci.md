@@ -67,4 +67,4 @@ xcrun simctl launch booted app.camerabridge.ios
 - 当前 XCFramework 的模拟器切片仅包含 arm64，因此必须使用 Apple Silicon runner 或 Mac。
 - 模拟器使用 mock 相机，不能证明 Z6 II 的真实 Wi-Fi/PTP/IP 兼容性。
 - AppIcon 资源尚未包含正式的 1024×1024 图片；无签名 CI 临时禁用 AppIcon 编译，TestFlight 前必须补齐。
-- 在第一次远程工作流成功完成前，iOS 构建状态仍应记录为“尚未执行”。
+- 2026-09-12 的 [第 3 次远程构建](https://github.com/T1an12138/CameraBridge/actions/runs/34676925571) 已通过，应用源码为 `3809d7c`，12 项 Swift 测试成功。构建通过不代表真机相机兼容性或签名发布已经验收。
