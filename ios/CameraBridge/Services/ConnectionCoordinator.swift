@@ -21,6 +21,7 @@ final class ConnectionCoordinator {
     @ObservationIgnored private var session: (any CameraSessionClient)?
     @ObservationIgnored private var connectedSSID: String?
     @ObservationIgnored private let clientID: UUID
+    @ObservationIgnored private var mediaRequestID = UUID()
 
     init(
         core: any CameraCoreClient,
@@ -48,6 +49,8 @@ final class ConnectionCoordinator {
             return
         }
 
+        // 在首次 await 前占用连接状态，防止连点按钮创建两个会话。
+        step = .preparingCamera
         let password: String
         if suppliedPassword.isEmpty {
             password = (try? await keychain.password(forSSID: profile.ssid)) ?? ""
@@ -56,7 +59,6 @@ final class ConnectionCoordinator {
         }
 
         do {
-            step = .preparingCamera
             try await Task.sleep(for: .milliseconds(120))
             step = .joiningHotspot
             try await hotspotJoiner.join(ssid: profile.ssid, password: password)
@@ -102,8 +104,13 @@ final class ConnectionCoordinator {
     }
 
     func disconnect() async {
+        // 断开后忽略旧会话中尚未返回的媒体页。
+        mediaRequestID = UUID()
+        isLoadingPage = false
         if let session { try? await session.disconnect() }
         if let connectedSSID { await hotspotJoiner.removeConfiguration(ssid: connectedSSID) }
+        mediaRequestID = UUID()
+        isLoadingPage = false
         session = nil
         connectedSSID = nil
         camera = nil
@@ -134,6 +141,7 @@ final class ConnectionCoordinator {
 
     func updateFormats(_ formats: Set<CameraMediaFormat>) async {
         selectedFormats = formats
+        selectedAssetIDs = []
         await reloadMedia()
     }
 
@@ -171,22 +179,35 @@ final class ConnectionCoordinator {
     }
 
     private func loadPage(reset: Bool) async throws {
-        guard !isLoadingPage, let session else { return }
-        if !reset, nextCursor == nil { return }
+        guard let session else { return }
+        if !reset, isLoadingPage || nextCursor == nil { return }
+        let requestID = UUID()
+        mediaRequestID = requestID
         isLoadingPage = true
-        defer { isLoadingPage = false }
+        defer {
+            if mediaRequestID == requestID { isLoadingPage = false }
+        }
 
-        let page = try await session.listMedia(
-            formats: selectedFormats,
-            pageSize: min(capabilities?.maxPageSize ?? 60, 60),
-            cursor: reset ? nil : nextCursor
-        )
+        let page: CameraMediaPage
+        do {
+            page = try await session.listMedia(
+                formats: selectedFormats,
+                pageSize: min(capabilities?.maxPageSize ?? 60, 60),
+                cursor: reset ? nil : nextCursor
+            )
+        } catch {
+            guard mediaRequestID == requestID else { return }
+            throw error
+        }
+        // 快速切换格式时允许发起新请求，但只有最后一次请求能修改界面。
+        guard mediaRequestID == requestID else { return }
         let combined = reset ? page.items : assets + page.items
         assets = combined.sorted {
             ($0.capturedAt ?? .distantPast) > ($1.capturedAt ?? .distantPast)
         }
         nextCursor = page.nextCursor
         totalItems = page.totalItems
+        selectedAssetIDs.formIntersection(Set(assets.map(\.id)))
     }
 
     private static func loadClientID() -> UUID {

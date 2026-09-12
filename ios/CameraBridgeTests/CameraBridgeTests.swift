@@ -2,9 +2,9 @@ import Foundation
 import Testing
 @testable import CameraBridge
 
-@Suite("CameraBridge iOS domain")
+@Suite("CameraBridge iOS 基础模型")
 struct CameraBridgeTests {
-    @Test("Mock camera pages deterministically")
+    @Test("模拟相机提供确定性分页")
     func mockPaging() async throws {
         let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         let core = MockCameraCore()
@@ -25,7 +25,7 @@ struct CameraBridgeTests {
         #expect(first.totalItems == 240)
     }
 
-    @Test("Transfer progress clamps to one")
+    @Test("传输进度不超过百分之百")
     func progressClamps() {
         let progress = CameraTransferProgress(
             phase: .completed,
@@ -37,7 +37,7 @@ struct CameraBridgeTests {
         #expect(progress.fractionCompleted == 1)
     }
 
-    @Test("Terminal phases are complete, cancelled, or failed", arguments: [
+    @Test("完成、取消和失败均为终态", arguments: [
         CameraTransferPhase.completed,
         .cancelled,
         .failed,

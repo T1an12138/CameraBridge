@@ -27,6 +27,7 @@ bash scripts/apple/ci-build.sh
 - `CameraBridgeCore.xcframework.zip`：arm64 iPhone 与 arm64 模拟器 Rust 核心；
 - `CameraBridge-Xcode-Project.zip`：生成后的完整 `ios` 工程目录；
 - `CameraBridgeTests.xcresult.zip`：Swift 测试结果；
+- `CameraBridge-Simulator.png`：本轮 Release App 在真实 iOS 模拟器中的启动截图；
 - `CameraBridge-Unsigned.xcarchive.zip`：未签名真机归档，仅用于证明编译和链接；
 - `SHA256SUMS` 和三份 `xcodebuild` 日志。
 

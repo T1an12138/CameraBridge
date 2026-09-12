@@ -22,6 +22,7 @@ CameraBridge 使用 GitHub 托管的 Apple Silicon `macos-26` runner。它是临
 6. 生成无签名 arm64 真机 `.xcarchive`。
 7. 在 iPhone 17 Pro iOS 26 模拟器上运行 Swift 测试。
 8. 校验 App 的 `Info.plist` 和可执行文件格式，打包产物并生成 SHA-256。
+9. 测试成功后创建独立模拟器，安装并启动 Release App，保存 `CameraBridge-Simulator.png` 和启动日志，然后删除本次创建的模拟器。
 
 如果 Swift 测试失败，工作流仍会保留已经生成的应用、测试结果和日志，然后以失败状态结束。
 

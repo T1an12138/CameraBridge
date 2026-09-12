@@ -43,6 +43,7 @@ targets:
       - path: CameraBridgeTests
     dependencies:
       - target: CameraBridge
+      - package: CameraBridgeCore
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.camerabridge.ios.tests
