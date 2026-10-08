@@ -50,6 +50,7 @@ rm -f \
   "$OUTPUT_ROOT/CameraBridge-Xcode-Project.zip" \
   "$OUTPUT_ROOT/CameraBridgeTests.xcresult.zip" \
   "$OUTPUT_ROOT/CameraBridge-Simulator.png" \
+  "$OUTPUT_ROOT/CameraBridge-Gallery.png" \
   "$OUTPUT_ROOT/simulator-launch.log" \
   "$OUTPUT_ROOT/SHA256SUMS" \
   "$OUTPUT_ROOT/artifact-validation.log" \
@@ -179,9 +180,14 @@ xcrun simctl install "$SMOKE_DEVICE" "$SIMULATOR_APP"
 xcrun simctl launch "$SMOKE_DEVICE" app.camerabridge.ios | tee "$OUTPUT_ROOT/simulator-launch.log"
 sleep 3
 xcrun simctl io "$SMOKE_DEVICE" screenshot "$OUTPUT_ROOT/CameraBridge-Simulator.png"
+xcrun simctl terminate "$SMOKE_DEVICE" app.camerabridge.ios
+SIMCTL_CHILD_CAMERABRIDGE_PREVIEW_PHOTOS=1 xcrun simctl launch "$SMOKE_DEVICE" app.camerabridge.ios
+sleep 3
+xcrun simctl io "$SMOKE_DEVICE" screenshot "$OUTPUT_ROOT/CameraBridge-Gallery.png"
 (
   cd "$OUTPUT_ROOT"
   shasum -a 256 CameraBridge-Simulator.png >> SHA256SUMS
+  shasum -a 256 CameraBridge-Gallery.png >> SHA256SUMS
 )
 
 echo "iOS 构建、归档和测试产物已写入：$OUTPUT_ROOT"

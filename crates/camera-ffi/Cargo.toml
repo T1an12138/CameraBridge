@@ -6,7 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 
 [lib]
-crate-type = ["lib", "staticlib"]
+crate-type = ["lib", "staticlib", "cdylib"]
 
 [dependencies]
 camera-core = { path = "../camera-core" }

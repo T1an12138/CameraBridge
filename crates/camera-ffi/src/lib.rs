@@ -1,6 +1,6 @@
 //! `CameraBridge` 的精简 `UniFFI` 门面。
 //!
-//! 自动生成的绑定会再由手写 Swift actor 包装一层。本 crate 仅导出稳定的
+//! 自动生成的绑定由 Swift actor 或 Kotlin 客户端包装。本 crate 仅导出稳定的
 //! DTO 以及不透明的会话/任务对象；绝不导出 Nikon 对象句柄，也不接受任意目标路径。
 
 use camera_core::{
@@ -123,8 +123,9 @@ pub struct FfiTransferSnapshot {
 
 #[derive(Debug, Error, uniffi::Error)]
 pub enum CameraFfiError {
-    #[error("{message}")]
-    Failure { code: FfiErrorCode, message: String },
+    // `message` 与 Kotlin Throwable.message 冲突，使用跨平台安全的字段名。
+    #[error("{reason}")]
+    Failure { code: FfiErrorCode, reason: String },
 }
 
 #[derive(Debug, uniffi::Object)]
@@ -410,7 +411,7 @@ impl From<CameraError> for CameraFfiError {
     fn from(value: CameraError) -> Self {
         Self::Failure {
             code: value.code().into(),
-            message: value.to_string(),
+            reason: value.to_string(),
         }
     }
 }
@@ -418,7 +419,7 @@ impl From<CameraError> for CameraFfiError {
 fn ffi_invalid(message: impl Into<String>) -> CameraFfiError {
     CameraFfiError::Failure {
         code: FfiErrorCode::InvalidInput,
-        message: message.into(),
+        reason: message.into(),
     }
 }
 

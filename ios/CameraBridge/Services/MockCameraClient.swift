@@ -27,7 +27,7 @@ actor MockCameraSession: CameraSessionClient {
                     capturedAt: capturedAt,
                     width: 6048,
                     height: 4024,
-                    thumbnailAvailable: true
+                    thumbnailAvailable: false
                 ),
                 CameraAsset(
                     id: "mock-nef-\(index)",
@@ -38,7 +38,7 @@ actor MockCameraSession: CameraSessionClient {
                     capturedAt: capturedAt,
                     width: 6048,
                     height: 4024,
-                    thumbnailAvailable: true
+                    thumbnailAvailable: false
                 ),
             ]
         }
@@ -50,7 +50,7 @@ actor MockCameraSession: CameraSessionClient {
             id: "mock-z6ii",
             manufacturer: "Nikon",
             model: "Z 6_2",
-            displayName: "Nikon Z6 II (Mock)",
+            displayName: "Nikon Z6 II（模拟测试）",
             firmwareVersion: "C 1.70"
         )
     }
@@ -61,7 +61,7 @@ actor MockCameraSession: CameraSessionClient {
             profileID: "nikon-z6ii-c-1.70",
             displayName: "Nikon Z6 II C 1.70",
             supportedFormats: [.jpeg, .nef],
-            supportsThumbnails: true,
+            supportsThumbnails: false,
             supportsPartialDownloads: false,
             supportsEvents: true,
             maxPageSize: 60,
@@ -91,7 +91,7 @@ actor MockCameraSession: CameraSessionClient {
         guard assets.contains(where: { $0.id == assetID }) else {
             throw CameraBridgeError.protocolFailure("unknown mock asset")
         }
-        return Data(base64Encoded: "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAX/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAEf/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABBQJ//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAwEBPwF//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAgEBPwF//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQAGPwJ//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPyF//9oADAMBAAIAAwAAABD/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAEDAQE/EH//xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAECAQE/EH//xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAE/EH//2Q==") ?? Data()
+        throw CameraBridgeError.protocolFailure("模拟测试没有真实照片缩略图。")
     }
 
     func startDownload(asset: CameraAsset, filename: String, overwrite: Bool) async throws -> any CameraTransferClient {

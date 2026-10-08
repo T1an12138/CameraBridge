@@ -23,6 +23,7 @@ struct TransfersView: View {
                             exportRequest = ExportRequest(itemID: item.id, url: url)
                         }
                     }
+                    .listStyle(.insetGrouped)
                 }
             }
             .sheet(item: $exportRequest) { request in

@@ -201,7 +201,7 @@ private extension FfiTransferPhase {
 
 private func mapFFIError(_ error: Error) -> CameraBridgeError {
     if let ffiError = error as? CameraFfiError,
-       case let .Failure(code: code, message: message) = ffiError {
+       case let .Failure(code: code, reason: message) = ffiError {
         return mapFFIErrorCode(code, message: message)
     }
     return .other(error.localizedDescription)

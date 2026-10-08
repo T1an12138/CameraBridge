@@ -36,6 +36,7 @@ targets:
     scheme:
       testTargets:
         - CameraBridgeTests
+        - CameraBridgeUITests
   CameraBridgeTests:
     type: bundle.unit-test
     platform: iOS
@@ -47,6 +48,19 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.camerabridge.ios.tests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: 6.0
+        SWIFT_STRICT_CONCURRENCY: complete
+  CameraBridgeUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: CameraBridgeUITests
+    dependencies:
+      - target: CameraBridge
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.camerabridge.ios.uitests
         GENERATE_INFOPLIST_FILE: YES
         SWIFT_VERSION: 6.0
         SWIFT_STRICT_CONCURRENCY: complete

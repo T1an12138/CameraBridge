@@ -3,7 +3,6 @@ import SwiftUI
 
 struct CameraView: View {
     @Environment(ConnectionCoordinator.self) private var connection
-    @Environment(TransferQueue.self) private var transfers
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \SavedCameraProfile.lastConnectedAt, order: .reverse) private var savedProfiles: [SavedCameraProfile]
 
@@ -12,18 +11,36 @@ struct CameraView: View {
     @AppStorage("CameraBridge.LastPort") private var lastPort = 15740
     @State private var profile = CameraProfileInput()
     @State private var password = ""
-    @State private var enqueueError: CameraBridgeError?
 
     let openSettings: () -> Void
+    let openPhotos: () -> Void
 
     var body: some View {
         NavigationStack {
             Group {
                 if connection.step.isConnected {
-                    AssetGridView(
-                        enqueueSelection: enqueueSelection,
-                        enqueueError: $enqueueError
-                    )
+                    List {
+                        Section {
+                            Label {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text(connection.camera?.displayName ?? "Nikon Z6 II").font(.headline)
+                                    Text(connection.camera?.firmwareVersion ?? "C 1.70").font(.subheadline).foregroundStyle(.secondary)
+                                }
+                            } icon: {
+                                Image(systemName: "camera").font(.title2).foregroundStyle(.primary)
+                            }
+                            Label("相机已连接", systemImage: "checkmark.circle.fill").foregroundStyle(.secondary)
+                        }
+                        Section {
+                            Button("浏览照片", action: openPhotos)
+                                .frame(maxWidth: .infinity)
+                                .buttonStyle(.borderedProminent)
+                                .controlSize(.large)
+                        }
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets())
+                    }
+                    .listStyle(.insetGrouped)
                 } else {
                     ConnectionView(
                         profile: $profile,
@@ -32,7 +49,7 @@ struct CameraView: View {
                     )
                 }
             }
-            .navigationTitle(connection.camera?.displayName ?? String(localized: "相机"))
+            .navigationTitle("相机")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: openSettings) {
@@ -45,18 +62,6 @@ struct CameraView: View {
                         Button("断开") { Task { await connection.disconnect() } }
                     }
                 }
-            }
-            .alert(
-                "无法开始传输",
-                isPresented: Binding(
-                    get: { enqueueError != nil },
-                    set: { if !$0 { enqueueError = nil } }
-                ),
-                presenting: enqueueError
-            ) { _ in
-                Button("好", role: .cancel) {}
-            } message: { error in
-                Text(error.localizedDescription)
             }
             .task {
                 let latest = savedProfiles.first
@@ -108,19 +113,6 @@ struct CameraView: View {
         }
     }
 
-    private func enqueueSelection() {
-        do {
-            let session = try connection.connectedSession()
-            try transfers.enqueue(
-                assets: connection.selectedAssets(),
-                session: session,
-                modelContext: modelContext
-            )
-            connection.clearSelection()
-        } catch {
-            enqueueError = error as? CameraBridgeError ?? .other(error.localizedDescription)
-        }
-    }
 }
 
 private struct ConnectionView: View {
@@ -131,35 +123,49 @@ private struct ConnectionView: View {
 
     var body: some View {
         Form {
-            #if targetEnvironment(simulator)
-            Section("模拟器演示") {
-                Label("当前使用内置 Nikon Z6 II 模拟相机，无需连接真实热点。", systemImage: "shippingbox")
+            Section {
+                Label {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(profile.displayName).font(.headline)
+                        Text("C 1.70 · Wi-Fi / PTP-IP").font(.subheadline).foregroundStyle(.secondary)
+                    }
+                } icon: {
+                    Image(systemName: "camera").font(.title2).foregroundStyle(.primary)
+                }
             }
-            #endif
+            #if targetEnvironment(simulator)
+            Section {
+                Label("演示相机", systemImage: "play.rectangle")
+            } footer: {
+                Text("当前是模拟器协议测试，未读取实体相机，不提供照片预览。")
+            }
+            #else
             Section("在相机上") {
                 Label("网络菜单 → 连接至智能设备 → Wi‑Fi 连接", systemImage: "1.circle")
                 Label("保持相机屏幕唤醒并停留在网络页面", systemImage: "2.circle")
             }
 
             Section {
-                TextField("显示名称", text: $profile.displayName)
                 TextField("相机显示的 SSID", text: $profile.ssid)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                 SecureField("Wi‑Fi 密码（留空使用已保存密码）", text: $password)
-                TextField("相机地址", text: $profile.host)
-                    .textInputAutocapitalization(.never)
-                    .keyboardType(.numbersAndPunctuation)
-                TextField(
-                    "PTP/IP 端口",
-                    value: $profile.port,
-                    format: .number.grouping(.never)
-                )
-                .keyboardType(.numberPad)
             } header: {
                 Text("相机热点")
             } footer: {
-                Text("iOS 不允许普通 App 扫描附近 SSID；地址只做固定单播，不扫描子网。")
+                Text("填写相机显示的热点名称，并保持相机唤醒。密码可留空使用已保存的配置。")
+            }
+            #endif
+
+            Section {
+                DisclosureGroup("高级连接设置") {
+                    TextField("显示名称", text: $profile.displayName)
+                    TextField("相机地址", text: $profile.host)
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.numbersAndPunctuation)
+                    TextField("PTP/IP 端口", value: $profile.port, format: .number.grouping(.never))
+                        .keyboardType(.numberPad)
+                }
             }
 
             Section {
@@ -174,7 +180,11 @@ private struct ConnectionView: View {
                     }
                 }
                 .disabled(connection.step.isWorking || profile.ssid.isEmpty)
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
             }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
 
             if case let .failed(error) = connection.step {
                 Section("需要处理") {

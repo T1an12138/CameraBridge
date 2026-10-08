@@ -15,14 +15,23 @@ struct AppView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            CameraView { sheet = .settings }
+            CameraView(openSettings: { sheet = .settings }, openPhotos: { selectedTab = .photos })
                 .tag(AppTab.camera)
                 .tabItem { Label("相机", systemImage: "camera") }
+
+            CameraPhotosView { sheet = .settings }
+                .tag(AppTab.photos)
+                .tabItem { Label("照片", systemImage: "photo.on.rectangle") }
 
             TransfersView { sheet = .settings }
                 .tag(AppTab.transfers)
                 .tabItem { Label("传输", systemImage: "arrow.down.circle") }
+
+            NavigationStack { SettingsView(showsDoneButton: false) }
+                .tag(AppTab.settings)
+                .tabItem { Label("设置", systemImage: "gearshape") }
         }
+        .tint(.blue)
         .sheet(item: $sheet) { route in
             switch route {
             case .settings:
@@ -36,6 +45,12 @@ struct AppView: View {
             } catch {
                 storageError = error.localizedDescription
             }
+            #if targetEnvironment(simulator)
+            if ProcessInfo.processInfo.environment["CAMERABRIDGE_PREVIEW_PHOTOS"] == "1" {
+                await connection.connect(profile: CameraProfileInput(ssid: "Nikon-Z6II-Mock"), password: "")
+                if connection.step.isConnected { selectedTab = .photos }
+            }
+            #endif
         }
         .alert("无法读取传输记录", isPresented: Binding(
             get: { storageError != nil },
@@ -56,7 +71,9 @@ struct AppView: View {
 
 private enum AppTab: Hashable {
     case camera
+    case photos
     case transfers
+    case settings
 }
 
 private enum AppSheet: String, Identifiable {

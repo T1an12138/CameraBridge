@@ -26,12 +26,15 @@ bash scripts/apple/ci-build.sh
 - `CameraBridge-Simulator.app.zip`：Apple Silicon iOS 26 模拟器应用；
 - `CameraBridgeCore.xcframework.zip`：arm64 iPhone 与 arm64 模拟器 Rust 核心；
 - `CameraBridge-Xcode-Project.zip`：生成后的完整 `ios` 工程目录；
-- `CameraBridgeTests.xcresult.zip`：Swift 测试结果；
+- `CameraBridgeTests.xcresult.zip`：Swift 单元测试和界面测试结果；
 - `CameraBridge-Simulator.png`：本轮 Release App 在真实 iOS 模拟器中的启动截图；
+- `CameraBridge-Gallery.png`：照片网格截图，模拟器对象没有真实照片预览；
 - `CameraBridge-Unsigned.xcarchive.zip`：未签名真机归档，仅用于证明编译和链接；
 - `SHA256SUMS` 和三份 `xcodebuild` 日志。
 
-模拟器无法加入 Nikon 相机热点，因此模拟器版本默认使用内置 Z6 II 模拟相机。启动后会预填模拟 SSID，点击“连接相机”即可浏览 240 个 JPEG/NEF 模拟对象并测试分页、选择和传输状态。
+界面使用原生分组列表、蓝色按钮、分段筛选和照片网格，适配深浅色模式。实体 iPhone 的缩略图只通过 Rust/PTP 会话读取对应相机对象，没有离线示例照片。
+
+模拟器无法加入 Nikon 相机热点，因此模拟器版本默认使用内置 Z6 II 模拟相机。启动后会预填模拟 SSID，点击“连接相机”即可浏览 240 个 JPEG/NEF 模拟对象并测试分页、选择和传输状态；模拟对象不提供照片预览。
 
 未签名归档和手工压缩的 `.ipa` 都不能安装到实体 iPhone。可安装版本需要匹配 `app.camerabridge.ios` 的 App ID、启用 Hotspot Configuration 的描述文件，以及相应证书和私钥。TestFlight 还需要 Apple Developer Program 与 App Store Connect 权限。
 

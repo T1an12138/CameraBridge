@@ -9,6 +9,7 @@ CameraBridge 是一个本地优先的相机导入项目。首个硬件目标是�
 - Windows 探测 CLI 和确定性的模拟相机；
 - 面向 Apple 平台的窄 UniFFI 边界；
 - iOS 26 SwiftUI 应用和远程 macOS 构建流程。
+- Android 10+ Kotlin / Jetpack Compose 应用，复用 Rust 核心，支持演示模式和开发签名 APK 构建。
 
 ## 当前交付边界
 
@@ -35,6 +36,16 @@ Rust 工作区已通过 Windows 上的 34 项测试。2026-09-12 的 [真实 mac
 远程构建不需要签名秘密。模拟器 App 默认使用内置 Nikon Z6 II 模拟相机；无签名真机归档只能验证 arm64 编译和链接，不能安装到 iPhone。完整说明见 [docs/macos-ci.md](docs/macos-ci.md)。
 
 有关已验证范围的准确信息，请参阅 [docs/validation-status.md](docs/validation-status.md)；连接实体相机前，请先阅读 [docs/hardware-validation.md](docs/hardware-validation.md)。
+
+## 构建 Android
+
+Windows 配置好 JDK 17+、Android SDK 36 和 NDK r28b 后运行：
+
+```powershell
+.\scripts\android\build.ps1 -SdkRoot 'C:\path\to\Android\Sdk' -NdkRoot 'C:\path\to\android-ndk-r28b'
+```
+
+输出为 `target/android-artifacts/CameraBridge-Android-0.1.0-debug.apk`，可直接安装到支持 arm64 的 Android 10+ 手机。默认使用实体相机连接；两端采用浅灰分组背景、蓝色按钮和照片网格，缩略图仅显示当前相机会话返回的数据，不包含离线示例照片。连接相机、保存路径和 CI 说明见 [android/README.md](android/README.md)。实体 Z6 II 兼容性仍待硬件验收。
 
 ## 隐私与协议政策
 

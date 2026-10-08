@@ -1,0 +1,58 @@
+name: Android APK 构建
+on:
+  workflow_dispatch:
+  push:
+    branches: [master, main]
+    paths:
+      - '.github/workflows/android-build.yml'
+      - 'android/**'
+      - 'scripts/android/**'
+      - 'crates/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
+permissions:
+  contents: read
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: 安装 SDK 和 NDK
+        run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0' 'ndk;28.1.13356709'
+      - name: 构建 Rust 与 Kotlin 绑定
+        run: |
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/28.1.13356709"
+          bash scripts/android/build-native.sh
+      - name: 构建、单元测试与静态检查
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
+      - name: 打包 APK 和校验和
+        run: |
+          mkdir -p target/android-artifacts
+          cp android/app/build/outputs/apk/debug/app-debug.apk target/android-artifacts/CameraBridge-Android-0.1.0-debug.apk
+          cd target/android-artifacts
+          sha256sum *.apk > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CameraBridge-Android
+          path: target/android-artifacts/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Android-Test-Reports
+          path: |
+            android/app/build/reports/
+            android/app/build/test-results/

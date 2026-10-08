@@ -161,6 +161,14 @@ final class ConnectionCoordinator {
 
     func clearSelection() { selectedAssetIDs = [] }
 
+    var allLoadedAssetsSelected: Bool {
+        !assets.isEmpty && selectedAssetIDs == Set(assets.map(\.id))
+    }
+
+    func toggleAllLoadedAssets() {
+        selectedAssetIDs = allLoadedAssetsSelected ? [] : Set(assets.map(\.id))
+    }
+
     func selectedAssets() -> [CameraAsset] {
         assets.filter { selectedAssetIDs.contains($0.id) }
     }

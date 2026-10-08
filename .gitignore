@@ -12,4 +12,12 @@ ios/CameraBridge.xcodeproj/
 *.pcapng
 diagnostics/
 captures/
+android/.gradle/
+android/.kotlin/
+android/**/build/
+android/local.properties
+android/app/src/main/jniLibs/
+android/app/src/main/java/uniffi/
+*.jks
+*.keystore
 .superpowers/

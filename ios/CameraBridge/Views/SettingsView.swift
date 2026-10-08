@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 
 struct SettingsView: View {
+    var showsDoneButton = true
     @Environment(\.dismiss) private var dismiss
     @Query(sort: \SavedCameraProfile.lastConnectedAt, order: .reverse) private var profiles: [SavedCameraProfile]
     @Query(sort: \TransferRecord.completedAt, order: .reverse) private var transferRecords: [TransferRecord]
@@ -47,9 +48,10 @@ struct SettingsView: View {
             }
         }
         .navigationTitle("设置")
+        .listStyle(.insetGrouped)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
-                Button("完成") { dismiss() }
+                if showsDoneButton { Button("完成") { dismiss() } }
             }
         }
     }
