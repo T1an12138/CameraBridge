@@ -6,13 +6,20 @@
 
 - 两端界面改为 Apple 风格：分组背景、蓝色按钮、分段筛选和照片缩略图网格，适配深浅色。离线示例照片及资源已移除；实体连接只显示当前相机会话按对象 ID 返回的缩略图，模拟对象明确不提供预览。Android 默认使用实体连接。
 - 最终 Android 改版重新通过 3 项 JVM 测试和 5 项 Android 15 模拟器测试（0 跳过），lint 为 0 errors。新增协议界面测试确认不可解码的相机缩略图显示不可用，不使用替代照片。协议模拟对端只返回 JPEG 起止标记，不能作为有效照片解码或实体相机缩略图效果的证据。
+- [GitHub Android 构建](https://github.com/T1an12138/CameraBridge/actions/runs/37750632197) 已通过，源码为 `b09ec0e4461f1301b4b4e116bb28bfab881c8d02`；Ubuntu runner 完成两种 ABI 的 Rust 编译、Kotlin 绑定、APK 构建、JVM 测试和 lint，并上传 APK 与校验和。CI 没有运行设备测试，设备测试证据来自本地 Android 15 模拟器。
 
 - Windows 本机构建已生成开发签名 APK，最低 API 29、目标 API 36，包含 arm64-v8a / x86_64 Rust 共享库。
 - 34 项 Rust 工作区测试、3 项 Android JVM 测试全部通过。Android lint 为 0 errors；仍有依赖版本等提示，未将提示等同于错误。
 - Android 15（API 35）x86_64 模拟器实际安装和启动成功；4 项 instrumentation 测试全部通过、无跳过：演示连接→浏览→下载、100 次真实 UniFFI 对象创建释放及结构化参数错误、通过 `10.0.2.2` 连接主机协议模拟相机进行分页 / 缩略图 / 下载、JPEG 和原始字节文件的 MediaStore 写入与读取校验。
 - APK v2 签名已验证；Rust、JNA、AndroidX 原生库的两个 ABI 均具备 16 KB ELF LOAD 对齐，APK 16 KB ZIP 对齐检查通过。
 - Android 对硬链接的限制已在真实模拟器测试中暴露并修正：私有 UUID 暂存文件使用原子重命名发布。Kotlin 绑定开启 Android 清理器配置，以支持 API 29。
-- 尚未测试实体安卓手机与 Nikon Z6 II、相机热点的实际路由、Android 10 设备运行或实体 NEF 文件解码。本轮 iOS 改版通过 GitHub macOS 工作流核验，实际结果以对应 Actions 记录为准。
+- 尚未测试实体安卓手机与 Nikon Z6 II、相机热点的实际路由、Android 10 设备运行或实体 NEF 文件解码。
+
+## iOS 界面改版验证（2026-10-08）
+
+- [第 4 次真实 macOS 构建](https://github.com/T1an12138/CameraBridge/actions/runs/37750484328) 已通过，应用源码为 `72fb60173d7759bc0f9b58f9875da2cfaa99b37e`。
+- Xcode 26.6 完成模拟器 Release 构建、arm64 未签名真机归档，以及 12 项 Swift 单元测试和 2 项 XCTest 界面测试，全部成功。
+- 界面测试验证连接后打开照片网格、选择照片、下载按钮启用、JPEG/NEF 筛选以及模拟对象不显示已加载的照片预览。CI 已生成启动页和网格截图；这不是实体相机缩略图验收。
 
 
 以下为截至 2026-09-12 的 Windows / macOS 历史验证记录。
