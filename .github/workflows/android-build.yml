@@ -27,6 +27,9 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
       - name: 安装 SDK 和 NDK
         run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0' 'ndk;28.1.13356709'
       - name: 构建 Rust 与 Kotlin 绑定
